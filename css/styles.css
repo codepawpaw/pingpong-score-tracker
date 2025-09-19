@@ -1,0 +1,465 @@
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+    overflow-x: hidden;
+}
+
+/* Screen Management */
+.screen {
+    display: none;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.screen.active {
+    display: block;
+}
+
+/* Setup Screen */
+.setup-container {
+    max-width: 400px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    padding: 30px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    margin-top: 40px;
+}
+
+.setup-container h1 {
+    text-align: center;
+    font-size: 2.2rem;
+    margin-bottom: 30px;
+    color: #333;
+    font-weight: 700;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #555;
+}
+
+.form-group input,
+.form-group select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid #e1e5e9;
+    border-radius: 12px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+.instructions {
+    margin-top: 30px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.instructions h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.instructions ul {
+    list-style: none;
+}
+
+.instructions li {
+    margin-bottom: 10px;
+    padding-left: 5px;
+    line-height: 1.5;
+}
+
+/* Buttons */
+.btn-primary,
+.btn-secondary {
+    width: 100%;
+    padding: 16px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+    background: white;
+    color: #667eea;
+    border: 2px solid #667eea;
+}
+
+.btn-secondary:hover {
+    background: #667eea;
+    color: white;
+}
+
+.btn-undo {
+    padding: 16px 24px;
+    border: none;
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-undo:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(255, 107, 53, 0.3);
+}
+
+.btn-undo:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.btn-undo:disabled:hover {
+    transform: none;
+    box-shadow: none;
+}
+
+/* Game Screen */
+.game-container {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+/* Scoreboard */
+.scoreboard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.team {
+    text-align: center;
+    flex: 1;
+}
+
+.team-header {
+    margin-bottom: 10px;
+}
+
+.team-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+.serve-indicator {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #FF6B35;
+    background: rgba(255, 107, 53, 0.1);
+    padding: 4px 8px;
+    border-radius: 12px;
+    display: none;
+    animation: servePulse 2s infinite;
+}
+
+.serve-indicator.active {
+    display: inline-block;
+}
+
+@keyframes servePulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.score {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 10px 0;
+}
+
+.home-team .score {
+    color: #4CAF50;
+}
+
+.away-team .score {
+    color: #FF5722;
+}
+
+.sets {
+    font-size: 0.9rem;
+    color: #777;
+}
+
+.game-info {
+    text-align: center;
+    padding: 0 20px;
+    color: #666;
+}
+
+.set-info {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.max-sets {
+    font-size: 0.9rem;
+}
+
+.serve-info {
+    font-size: 0.85rem;
+    color: #FF6B35;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+/* Camera Section */
+.camera-section {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+#video {
+    width: 100%;
+    max-width: 400px;
+    border-radius: 12px;
+    display: block;
+    margin: 0 auto;
+    background: #f0f0f0;
+}
+
+#canvas {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 12px;
+    pointer-events: none;
+}
+
+.gesture-feedback {
+    text-align: center;
+    margin-top: 15px;
+}
+
+#gestureStatus {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    background: #f8f9fa;
+    color: #333;
+}
+
+#gestureStatus.detected {
+    background: #d4edda;
+    color: #155724;
+}
+
+#gestureStatus.undo-feedback {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.gesture-guide {
+    display: flex;
+    justify-content: space-around;
+    gap: 10px;
+}
+
+.gesture-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    flex: 1;
+}
+
+.gesture-icon {
+    font-size: 2rem;
+    margin-bottom: 5px;
+}
+
+.gesture-item span:last-child {
+    font-size: 0.8rem;
+    color: #666;
+    text-align: center;
+}
+
+/* Controls */
+.controls {
+    display: flex;
+    gap: 10px;
+}
+
+.controls .btn-secondary,
+.controls .btn-undo {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+/* Victory Screen */
+.victory-container {
+    max-width: 400px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 20px;
+    padding: 40px 30px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    margin-top: 60px;
+}
+
+#victoryTitle {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #FFD700;
+}
+
+#victoryMessage {
+    font-size: 1.3rem;
+    margin-bottom: 30px;
+    color: #333;
+    line-height: 1.5;
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    .scoreboard {
+        padding: 15px;
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .team {
+        flex: none;
+        width: 100%;
+    }
+    
+    .score {
+        font-size: 2.5rem !important;
+    }
+    
+    .game-info {
+        order: -1;
+        padding: 0;
+        margin-bottom: 10px;
+    }
+    
+    .gesture-guide {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .gesture-item {
+        flex-direction: row;
+        justify-content: flex-start;
+        text-align: left;
+    }
+    
+    .gesture-icon {
+        margin-right: 10px;
+        margin-bottom: 0;
+    }
+}
+
+@media (max-width: 360px) {
+    .screen {
+        padding: 15px;
+    }
+    
+    .setup-container,
+    .victory-container {
+        padding: 20px;
+    }
+    
+    .scoreboard {
+        padding: 12px;
+    }
+}
+
+/* Animation for score changes */
+@keyframes scoreUpdate {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.score.animate {
+    animation: scoreUpdate 0.3s ease-in-out;
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.7;
+    pointer-events: none;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ccc;
+    border-top: 2px solid #667eea;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}

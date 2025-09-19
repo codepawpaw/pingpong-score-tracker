@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ping Pong Score Tracker</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Setup Screen -->
+        <div id="setupScreen" class="screen active">
+            <div class="setup-container">
+                <h1>🏓 Ping Pong Score Tracker</h1>
+                
+                <div class="form-group">
+                    <label for="homeTeam">Home Team Name:</label>
+                    <input type="text" id="homeTeam" placeholder="Home Team" value="Home">
+                </div>
+                
+                <div class="form-group">
+                    <label for="awayTeam">Away Team Name:</label>
+                    <input type="text" id="awayTeam" placeholder="Away Team" value="Away">
+                </div>
+                
+                <div class="form-group">
+                    <label for="numSets">Number of Sets:</label>
+                    <select id="numSets">
+                        <option value="1">1 Set</option>
+                        <option value="3" selected>3 Sets</option>
+                        <option value="5">5 Sets</option>
+                        <option value="7">7 Sets</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="firstServer">Who serves first?</label>
+                    <select id="firstServer">
+                        <option value="home">Home Team</option>
+                        <option value="away">Away Team</option>
+                    </select>
+                </div>
+                
+                <button id="startGame" class="btn-primary">Start Game</button>
+                
+                <div class="instructions">
+                    <h3>How to Play:</h3>
+                    <ul>
+                        <li>☝️ Show <strong>one finger</strong> to camera for Home team point</li>
+                        <li>✌️ Show <strong>two fingers</strong> to camera for Away team point</li>
+                        <li>First to 11 points wins the set</li>
+                        <li>Most sets won wins the match</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="screen">
+            <div class="game-container">
+                <!-- Score Display -->
+                <div class="scoreboard">
+                    <div class="team home-team">
+                        <div class="team-header">
+                            <div class="team-name" id="homeTeamName">Home</div>
+                            <div class="serve-indicator" id="homeServeIndicator">🎾 SERVING</div>
+                        </div>
+                        <div class="score" id="homeScore">0</div>
+                        <div class="sets">Sets: <span id="homeSets">0</span></div>
+                    </div>
+                    
+                    <div class="game-info">
+                        <div class="set-info">Set <span id="currentSet">1</span></div>
+                        <div class="max-sets">of <span id="maxSets">3</span></div>
+                        <div class="serve-info">
+                            <span id="serveCount">Serve 1 of 2</span>
+                        </div>
+                    </div>
+                    
+                    <div class="team away-team">
+                        <div class="team-header">
+                            <div class="team-name" id="awayTeamName">Away</div>
+                            <div class="serve-indicator" id="awayServeIndicator">🎾 SERVING</div>
+                        </div>
+                        <div class="score" id="awayScore">0</div>
+                        <div class="sets">Sets: <span id="awaySets">0</span></div>
+                    </div>
+                </div>
+
+                <!-- Camera and Gesture Detection -->
+                <div class="camera-section">
+                    <video id="video" autoplay playsinline></video>
+                    <canvas id="canvas"></canvas>
+                    
+                    <div class="gesture-feedback">
+                        <div id="gestureStatus">Show gesture to camera</div>
+                        <div class="gesture-guide">
+                            <div class="gesture-item">
+                                <span class="gesture-icon">☝️</span>
+                                <span>One Finger = Home Point</span>
+                            </div>
+                            <div class="gesture-item">
+                                <span class="gesture-icon">✌️</span>
+                                <span>Two Fingers = Away Point</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Game Controls -->
+                <div class="controls">
+                    <button id="undoBtn" class="btn-undo" disabled>⟲ Undo</button>
+                    <button id="resetSet" class="btn-secondary">Reset Set</button>
+                    <button id="newGame" class="btn-secondary">New Game</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Victory Screen -->
+        <div id="victoryScreen" class="screen">
+            <div class="victory-container">
+                <h1 id="victoryTitle">🏆 Victory!</h1>
+                <div id="victoryMessage"></div>
+                <button id="playAgain" class="btn-primary">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/audio-manager.js"></script>
+    <script src="js/gesture-recognition.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
