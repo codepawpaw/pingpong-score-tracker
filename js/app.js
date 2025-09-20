@@ -198,12 +198,12 @@ class PingPongScoreTracker {
             if (gestureGuide) {
                 gestureGuide.innerHTML = `
                     <div class="gesture-item">
-                        <span class="gesture-icon">☝️</span>
-                        <span>One Finger = Home Point</span>
+                        <span class="gesture-icon">👍</span>
+                        <span>Thumbs Up = Home Point</span>
                     </div>
                     <div class="gesture-item">
-                        <span class="gesture-icon">✌️</span>
-                        <span>Two Fingers = Away Point</span>
+                        <span class="gesture-icon">🖐️</span>
+                        <span>Open Palm = Away Point</span>
                     </div>
                 `;
             }
@@ -225,8 +225,8 @@ class PingPongScoreTracker {
             `;
         } else {
             instructionsList.innerHTML = `
-                <li>☝️ Show <strong>one finger</strong> to camera for Home team point</li>
-                <li>✌️ Show <strong>two fingers</strong> to camera for Away team point</li>
+                <li>👍 Show <strong>thumbs up</strong> to camera for Home team point</li>
+                <li>🖐️ Show <strong>open palm</strong> to camera for Away team point</li>
                 <li>First to 11 points wins the set</li>
                 <li>Most sets won wins the match</li>
             `;
@@ -531,9 +531,9 @@ class PingPongScoreTracker {
     handleGestureDetected(gesture) {
         if (!this.gameState.isGameActive) return;
 
-        if (gesture === 'paper') {
+        if (gesture === 'thumbsUp') {
             this.addPoint('home');
-        } else if (gesture === 'rock') {
+        } else if (gesture === 'openPalm') {
             this.addPoint('away');
         }
     }

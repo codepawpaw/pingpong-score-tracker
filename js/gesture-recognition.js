@@ -139,16 +139,15 @@ class GestureRecognition {
             return 'unknown';
         }
 
-        // Classify based on extended fingers
-        if (extendedCount === 1) {
-            // One finger extended = single finger for home team score
-            return 'paper';
-        } else if (extendedCount === 2) {
-            // Two fingers extended = peace sign for away team score
-            return 'rock';
+        // Check for thumbs up gesture specifically
+        if (this.isThumbsUpGesture(fingersExtended)) {
+            return 'thumbsUp';
+        } else if (extendedCount >= 4) {
+            // Open palm = 4-5 fingers extended for away team score
+            return 'openPalm';
         }
 
-        // All other cases (including closed fist/rock hand) return unknown
+        // All other cases return unknown
         return 'unknown';
     }
 
@@ -190,49 +189,30 @@ class GestureRecognition {
         return fingersExtended;
     }
 
+    isThumbsUpGesture(fingersExtended) {
+        // Thumbs up: thumb extended, all other fingers closed
+        const [thumb, index, middle, ring, pinky] = fingersExtended;
+        
+        // Thumb must be extended, all other fingers must be closed
+        return thumb && !index && !middle && !ring && !pinky;
+    }
+
     validateGesture(landmarks, fingersExtended) {
         // Check hand stability and clear finger positions
         const extendedCount = fingersExtended.filter(Boolean).length;
         
-        // Reject gestures with no extended fingers (like closed fist/rock hand)
-        if (extendedCount === 0) {
-            return false;
-        }
-        
-        // For one finger gesture, ensure it's clearly extended
-        if (extendedCount === 1) {
-            const extendedFingerIndex = fingersExtended.findIndex(extended => extended);
-            
-            // Get the extended finger's landmarks
-            let tipIndex, pipIndex, mcpIndex;
-            if (extendedFingerIndex === 0) { // Thumb
-                tipIndex = 4; pipIndex = 3; mcpIndex = 2;
-            } else if (extendedFingerIndex === 1) { // Index
-                tipIndex = 8; pipIndex = 6; mcpIndex = 5;
-            } else if (extendedFingerIndex === 2) { // Middle
-                tipIndex = 12; pipIndex = 10; mcpIndex = 9;
-            } else if (extendedFingerIndex === 3) { // Ring
-                tipIndex = 16; pipIndex = 14; mcpIndex = 13;
-            } else if (extendedFingerIndex === 4) { // Pinky
-                tipIndex = 20; pipIndex = 18; mcpIndex = 17;
-            }
-            
-            const tip = landmarks[tipIndex];
-            const pip = landmarks[pipIndex];
-            const mcp = landmarks[mcpIndex];
-            
-            // Ensure the finger is clearly and significantly extended
-            const clearExtension = (pip.y - tip.y) > 0.08 && (mcp.y - tip.y) > 0.1;
-            return clearExtension;
-        }
-        
-        // For two finger gesture, ensure both fingers are clearly extended
-        if (extendedCount === 2) {
-            // Additional validation can be added here if needed
+        // For thumbs up gesture (only thumb extended)
+        if (this.isThumbsUpGesture(fingersExtended)) {
             return true;
         }
         
-        // Reject all other cases
+        // For open palm gesture (4-5 fingers extended)
+        if (extendedCount >= 4) {
+            // Ensure most fingers are clearly extended for open palm
+            return true;
+        }
+        
+        // Reject gestures that don't clearly match thumbs up or open palm
         return false;
     }
 
@@ -256,11 +236,11 @@ class GestureRecognition {
     updateGestureUI(gesture) {
         const gestureStatus = document.getElementById('gestureStatus');
         if (gestureStatus) {
-            if (gesture === 'paper') {
-                gestureStatus.textContent = '☝️ One Finger Detected - Home Point!';
+            if (gesture === 'thumbsUp') {
+                gestureStatus.textContent = '👍 Thumbs Up Detected - Home Point!';
                 gestureStatus.className = 'detected';
-            } else if (gesture === 'rock') {
-                gestureStatus.textContent = '✌️ Two Fingers Detected - Away Point!';
+            } else if (gesture === 'openPalm') {
+                gestureStatus.textContent = '🖐️ Open Palm Detected - Away Point!';
                 gestureStatus.className = 'detected';
             }
 
