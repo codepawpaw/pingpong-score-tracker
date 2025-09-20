@@ -8,7 +8,7 @@ class GestureRecognition {
         this.isInitialized = false;
         this.onGestureDetected = null;
         this.lastGestureTime = 0;
-        this.gestureDebounceTime = 1000; // 1 second debounce
+        this.gestureDebounceTime = 3000; // 3 second debounce
         this.confidenceThreshold = 0.8;
         
         this.initializeMediaPipe();

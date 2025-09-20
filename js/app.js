@@ -14,7 +14,8 @@ class PingPongScoreTracker {
             currentServer: 'home',
             firstServer: 'home',
             serveCount: 0,
-            totalPoints: 0
+            totalPoints: 0,
+            trackingMode: 'gesture'
         };
 
         // History management for undo functionality
@@ -32,6 +33,10 @@ class PingPongScoreTracker {
             awayTeamInput: document.getElementById('awayTeam'),
             numSetsSelect: document.getElementById('numSets'),
             firstServerSelect: document.getElementById('firstServer'),
+            trackingModeSelect: document.getElementById('trackingMode'),
+            voiceEnabledCheckbox: document.getElementById('voiceEnabled'),
+            voiceSpeedSlider: document.getElementById('voiceSpeed'),
+            voiceSpeedValue: document.getElementById('voiceSpeedValue'),
             startGameBtn: document.getElementById('startGame')
         };
 
@@ -66,6 +71,26 @@ class PingPongScoreTracker {
         this.setupElements.startGameBtn.addEventListener('click', () => {
             this.startNewGame();
         });
+
+        // Tracking mode change event
+        this.setupElements.trackingModeSelect.addEventListener('change', () => {
+            this.updateSetupInstructions();
+        });
+
+        // Voice settings events
+        this.setupElements.voiceEnabledCheckbox.addEventListener('change', () => {
+            this.updateVoiceSettings();
+            this.toggleVoiceSettingsVisibility();
+        });
+
+        this.setupElements.voiceSpeedSlider.addEventListener('input', () => {
+            this.updateVoiceSpeedDisplay();
+            this.updateVoiceSettings();
+        });
+
+        // Initialize voice settings display
+        this.updateVoiceSpeedDisplay();
+        this.toggleVoiceSettingsVisibility();
 
         // Game screen events
         this.gameElements.resetSetBtn.addEventListener('click', () => {
@@ -105,6 +130,114 @@ class PingPongScoreTracker {
         }
     }
 
+    initializeBallTracking() {
+        if (window.ballTracking) {
+            window.ballTracking.setBallDetectedCallback((team) => {
+                this.handleBallDetected(team);
+            });
+        }
+    }
+
+    async startTrackingSystem() {
+        if (this.gameState.trackingMode === 'ball') {
+            this.initializeBallTracking();
+            await this.startBallTracking();
+        } else {
+            await this.startGestureRecognition();
+        }
+    }
+
+    async startBallTracking() {
+        if (window.ballTracking) {
+            await window.ballTracking.start();
+        }
+    }
+
+    stopBallTracking() {
+        if (window.ballTracking) {
+            window.ballTracking.stop();
+        }
+    }
+
+    stopTrackingSystem() {
+        if (this.gameState.trackingMode === 'ball') {
+            this.stopBallTracking();
+        } else {
+            this.stopGestureRecognition();
+        }
+    }
+
+    updateInstructionsForMode() {
+        const gestureStatus = document.getElementById('gestureStatus');
+        const gestureGuide = document.querySelector('.gesture-guide');
+        
+        if (this.gameState.trackingMode === 'ball') {
+            // Update for ball tracking mode
+            if (gestureStatus) {
+                gestureStatus.textContent = 'Ball tracking active...';
+            }
+            if (gestureGuide) {
+                gestureGuide.innerHTML = `
+                    <div class="gesture-item">
+                        <span class="gesture-icon">🔴</span>
+                        <span>Left Zone = Away Point</span>
+                    </div>
+                    <div class="gesture-item">
+                        <span class="gesture-icon">🟢</span>
+                        <span>Right Zone = Home Point</span>
+                    </div>
+                `;
+            }
+        } else {
+            // Update for gesture mode
+            if (gestureStatus) {
+                gestureStatus.textContent = 'Show gesture to camera';
+            }
+            if (gestureGuide) {
+                gestureGuide.innerHTML = `
+                    <div class="gesture-item">
+                        <span class="gesture-icon">☝️</span>
+                        <span>One Finger = Home Point</span>
+                    </div>
+                    <div class="gesture-item">
+                        <span class="gesture-icon">✌️</span>
+                        <span>Two Fingers = Away Point</span>
+                    </div>
+                `;
+            }
+        }
+    }
+
+    updateSetupInstructions() {
+        const instructionsList = document.getElementById('instructionsList');
+        const trackingMode = this.setupElements.trackingModeSelect.value;
+        
+        if (trackingMode === 'ball') {
+            instructionsList.innerHTML = `
+                <li>🏓 Position camera to view ping pong table</li>
+                <li>🔴 Left zone = Away team points</li>
+                <li>🟢 Right zone = Home team points</li>
+                <li>⚪ Orange/white ball detection</li>
+                <li>First to 11 points wins the set</li>
+                <li>Most sets won wins the match</li>
+            `;
+        } else {
+            instructionsList.innerHTML = `
+                <li>☝️ Show <strong>one finger</strong> to camera for Home team point</li>
+                <li>✌️ Show <strong>two fingers</strong> to camera for Away team point</li>
+                <li>First to 11 points wins the set</li>
+                <li>Most sets won wins the match</li>
+            `;
+        }
+    }
+
+    handleBallDetected(team) {
+        if (!this.gameState.isGameActive) return;
+        
+        console.log(`Ball detected in ${team} zone`);
+        this.addPoint(team);
+    }
+
     async startNewGame() {
         try {
             // Get setup values
@@ -112,6 +245,7 @@ class PingPongScoreTracker {
             this.gameState.awayTeam = this.setupElements.awayTeamInput.value.trim() || 'Away';
             this.gameState.maxSets = parseInt(this.setupElements.numSetsSelect.value);
             this.gameState.firstServer = this.setupElements.firstServerSelect.value;
+            this.gameState.trackingMode = this.setupElements.trackingModeSelect.value;
 
             // Reset game state and clear history
             this.resetGameState();
@@ -122,10 +256,11 @@ class PingPongScoreTracker {
 
             // Update UI
             this.updateGameUI();
+            this.updateInstructionsForMode();
             this.showScreen('game');
 
-            // Start camera and gesture recognition
-            await this.startGestureRecognition();
+            // Start camera and tracking system
+            await this.startTrackingSystem();
 
             this.gameState.isGameActive = true;
             
@@ -324,6 +459,21 @@ class PingPongScoreTracker {
             window.audioManager.playPoint();
         }
 
+        // Announce the current score
+        if (window.audioManager) {
+            window.audioManager.announceScore(
+                this.gameState.homeTeam,
+                this.gameState.awayTeam,
+                this.gameState.homeScore,
+                this.gameState.awayScore,
+                {
+                    currentSet: this.gameState.currentSet,
+                    homeSets: this.gameState.homeSets,
+                    awaySets: this.gameState.awaySets
+                }
+            );
+        }
+
         // Check if set is won
         if (this.gameState.homeScore >= 11 || this.gameState.awayScore >= 11) {
             this.checkSetWin();
@@ -355,9 +505,24 @@ class PingPongScoreTracker {
             this.gameState.awaySets++;
         }
 
+        // Get winner team name
+        const winnerName = winner === 'home' ? this.gameState.homeTeam : this.gameState.awayTeam;
+
         // Play set win sound
         if (window.audioManager) {
             window.audioManager.playSetWin();
+        }
+
+        // Announce set win
+        if (window.audioManager) {
+            window.audioManager.announceSetWin(
+                winnerName,
+                this.gameState.homeTeam,
+                this.gameState.awayTeam,
+                this.gameState.currentSet,
+                this.gameState.homeSets,
+                this.gameState.awaySets
+            );
         }
 
         // Check if match is won
@@ -406,6 +571,17 @@ class PingPongScoreTracker {
         // Play match win sound
         if (window.audioManager) {
             window.audioManager.playMatchWin();
+        }
+
+        // Announce match win
+        if (window.audioManager) {
+            window.audioManager.announceMatchWin(
+                this.gameState.gameWinner,
+                this.gameState.homeTeam,
+                this.gameState.awayTeam,
+                this.gameState.homeSets,
+                this.gameState.awaySets
+            );
         }
 
         // Show victory screen
@@ -460,11 +636,11 @@ class PingPongScoreTracker {
         `;
         
         this.showScreen('victory');
-        this.stopGestureRecognition();
+        this.stopTrackingSystem();
     }
 
     returnToSetup() {
-        this.stopGestureRecognition();
+        this.stopTrackingSystem();
         this.resetGameState();
         this.showScreen('setup');
     }
@@ -488,6 +664,34 @@ class PingPongScoreTracker {
 
     addAwayPoint() {
         this.addPoint('away');
+    }
+
+    // Voice settings management
+    updateVoiceSpeedDisplay() {
+        if (this.setupElements.voiceSpeedSlider && this.setupElements.voiceSpeedValue) {
+            const speed = this.setupElements.voiceSpeedSlider.value;
+            this.setupElements.voiceSpeedValue.textContent = `${speed}x`;
+        }
+    }
+
+    updateVoiceSettings() {
+        if (window.audioManager) {
+            const voiceEnabled = this.setupElements.voiceEnabledCheckbox.checked;
+            const voiceSpeed = parseFloat(this.setupElements.voiceSpeedSlider.value);
+            
+            window.audioManager.setVoiceEnabled(voiceEnabled);
+            window.audioManager.setVoiceSettings({
+                rate: voiceSpeed
+            });
+        }
+    }
+
+    toggleVoiceSettingsVisibility() {
+        const voiceSettingsDiv = document.getElementById('voiceSettings');
+        if (voiceSettingsDiv) {
+            const isEnabled = this.setupElements.voiceEnabledCheckbox.checked;
+            voiceSettingsDiv.style.display = isEnabled ? 'block' : 'none';
+        }
     }
 }
 

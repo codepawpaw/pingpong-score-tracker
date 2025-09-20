@@ -45,11 +45,32 @@
                     </select>
                 </div>
                 
+                <div class="form-group">
+                    <label for="trackingMode">Tracking Mode:</label>
+                    <select id="trackingMode">
+                        <option value="gesture">Hand Gestures</option>
+                        <option value="ball">Ball Tracking (Beta)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="voiceEnabled" checked>
+                        Enable Voice Announcements
+                    </label>
+                </div>
+                
+                <div class="form-group" id="voiceSettings">
+                    <label for="voiceSpeed">Voice Speed:</label>
+                    <input type="range" id="voiceSpeed" min="0.5" max="2" step="0.1" value="1">
+                    <span id="voiceSpeedValue">1.0x</span>
+                </div>
+                
                 <button id="startGame" class="btn-primary">Start Game</button>
                 
-                <div class="instructions">
+                <div class="instructions" id="setupInstructions">
                     <h3>How to Play:</h3>
-                    <ul>
+                    <ul id="instructionsList">
                         <li>☝️ Show <strong>one finger</strong> to camera for Home team point</li>
                         <li>✌️ Show <strong>two fingers</strong> to camera for Away team point</li>
                         <li>First to 11 points wins the set</li>
@@ -132,6 +153,7 @@
 
     <script src="js/audio-manager.js"></script>
     <script src="js/gesture-recognition.js"></script>
+    <script src="js/ball-tracking.js"></script>
     <script src="js/app.js"></script>
 </body>
 </html>
