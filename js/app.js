@@ -15,7 +15,9 @@ class PingPongScoreTracker {
             firstServer: 'home',
             serveCount: 0,
             totalPoints: 0,
-            trackingMode: 'gesture'
+            trackingMode: 'gesture',
+            isDeuce: false,
+            deuceAdvantage: null
         };
 
         // History management for undo functionality
@@ -291,6 +293,8 @@ class PingPongScoreTracker {
         this.gameState.currentSet = 1;
         this.gameState.isGameActive = false;
         this.gameState.gameWinner = null;
+        this.gameState.isDeuce = false;
+        this.gameState.deuceAdvantage = null;
     }
 
     initializeServeState() {
@@ -304,8 +308,11 @@ class PingPongScoreTracker {
         this.gameState.totalPoints++;
         this.gameState.serveCount++;
 
-        // Check if it's time to switch server (after 2 serves)
-        if (this.gameState.serveCount >= 2) {
+        // Determine serves per player based on deuce phase
+        const servesPerPlayer = this.gameState.isDeuce ? 1 : 2;
+
+        // Check if it's time to switch server
+        if (this.gameState.serveCount >= servesPerPlayer) {
             this.gameState.currentServer = this.gameState.currentServer === 'home' ? 'away' : 'home';
             this.gameState.serveCount = 0;
         }
@@ -323,9 +330,15 @@ class PingPongScoreTracker {
             this.gameElements.homeServeIndicator.classList.remove('active');
         }
 
-        // Update serve count display
+        // Update serve count display based on deuce phase
+        const servesPerPlayer = this.gameState.isDeuce ? 1 : 2;
         const currentServeNum = this.gameState.serveCount + 1;
-        this.gameElements.serveCount.textContent = `Serve ${currentServeNum} of 2`;
+        
+        if (this.gameState.isDeuce) {
+            this.gameElements.serveCount.textContent = `Deuce - Serve ${currentServeNum} of ${servesPerPlayer}`;
+        } else {
+            this.gameElements.serveCount.textContent = `Serve ${currentServeNum} of ${servesPerPlayer}`;
+        }
     }
 
     resetServeState() {
@@ -346,6 +359,8 @@ class PingPongScoreTracker {
             currentServer: this.gameState.currentServer,
             serveCount: this.gameState.serveCount,
             totalPoints: this.gameState.totalPoints,
+            isDeuce: this.gameState.isDeuce,
+            deuceAdvantage: this.gameState.deuceAdvantage,
             actionType: actionType,
             timestamp: Date.now()
         };
@@ -368,7 +383,7 @@ class PingPongScoreTracker {
 
         const previousState = this.gameHistory.pop();
         
-        // Restore previous game state
+        // Restore previous game state including deuce state
         this.gameState.homeScore = previousState.homeScore;
         this.gameState.awayScore = previousState.awayScore;
         this.gameState.homeSets = previousState.homeSets;
@@ -377,6 +392,8 @@ class PingPongScoreTracker {
         this.gameState.currentServer = previousState.currentServer;
         this.gameState.serveCount = previousState.serveCount;
         this.gameState.totalPoints = previousState.totalPoints;
+        this.gameState.isDeuce = previousState.isDeuce || false;
+        this.gameState.deuceAdvantage = previousState.deuceAdvantage || null;
 
         // Update UI
         this.updateGameUI();
@@ -428,6 +445,89 @@ class PingPongScoreTracker {
         }
     }
 
+    handleDeuceScoring(team) {
+        if (this.gameState.isDeuce) {
+            // Handle deuce scoring
+            if (this.gameState.homeScore === 10 && this.gameState.awayScore === 10) {
+                // Currently tied at 10-10, someone scores
+                if (team === 'home') {
+                    this.gameState.homeScore = 11;
+                    this.gameState.awayScore = 10;
+                    this.gameState.deuceAdvantage = 'home';
+                } else {
+                    this.gameState.awayScore = 11;
+                    this.gameState.homeScore = 10;
+                    this.gameState.deuceAdvantage = 'away';
+                }
+            } else if (this.gameState.deuceAdvantage) {
+                // Someone has advantage
+                if (team === this.gameState.deuceAdvantage) {
+                    // Player with advantage scores again - they win
+                    if (team === 'home') {
+                        this.gameState.homeScore = 12;
+                    } else {
+                        this.gameState.awayScore = 12;
+                    }
+                    // Will be handled by checkSetWin()
+                } else {
+                    // Player without advantage scores - back to deuce
+                    this.gameState.homeScore = 10;
+                    this.gameState.awayScore = 10;
+                    this.gameState.deuceAdvantage = null;
+                }
+            }
+        } else {
+            // Normal scoring (not in deuce)
+            if (team === 'home') {
+                this.gameState.homeScore++;
+            } else {
+                this.gameState.awayScore++;
+            }
+            
+            // Check if we just entered deuce phase (both players now at 10)
+            if (this.gameState.homeScore === 10 && this.gameState.awayScore === 10) {
+                this.gameState.isDeuce = true;
+                this.gameState.deuceAdvantage = null;
+                console.log('Entering deuce phase');
+            }
+        }
+    }
+
+    announceScore() {
+        if (window.audioManager) {
+            let announcement = '';
+            
+            if (this.gameState.isDeuce) {
+                if (this.gameState.deuceAdvantage) {
+                    const advantageTeam = this.gameState.deuceAdvantage === 'home' ? 
+                        this.gameState.homeTeam : this.gameState.awayTeam;
+                    announcement = `Advantage ${advantageTeam}`;
+                } else {
+                    announcement = 'Deuce';
+                }
+                
+                // Use speech synthesis for deuce announcements
+                if (window.speechSynthesis) {
+                    const utterance = new SpeechSynthesisUtterance(announcement);
+                    window.speechSynthesis.speak(utterance);
+                }
+            } else {
+                // Normal score announcement
+                window.audioManager.announceScore(
+                    this.gameState.homeTeam,
+                    this.gameState.awayTeam,
+                    this.gameState.homeScore,
+                    this.gameState.awayScore,
+                    {
+                        currentSet: this.gameState.currentSet,
+                        homeSets: this.gameState.homeSets,
+                        awaySets: this.gameState.awaySets
+                    }
+                );
+            }
+        }
+    }
+
     handleGestureDetected(gesture) {
         if (!this.gameState.isGameActive) return;
 
@@ -444,12 +544,8 @@ class PingPongScoreTracker {
         // Save current state to history before making changes
         this.saveGameStateToHistory('point');
 
-        // Add point
-        if (team === 'home') {
-            this.gameState.homeScore++;
-        } else {
-            this.gameState.awayScore++;
-        }
+        // Handle deuce logic
+        this.handleDeuceScoring(team);
 
         // Update serve rotation after point is scored
         this.updateServeRotation();
@@ -459,25 +555,11 @@ class PingPongScoreTracker {
             window.audioManager.playPoint();
         }
 
-        // Announce the current score
-        if (window.audioManager) {
-            window.audioManager.announceScore(
-                this.gameState.homeTeam,
-                this.gameState.awayTeam,
-                this.gameState.homeScore,
-                this.gameState.awayScore,
-                {
-                    currentSet: this.gameState.currentSet,
-                    homeSets: this.gameState.homeSets,
-                    awaySets: this.gameState.awaySets
-                }
-            );
-        }
+        // Announce the current score (including deuce status)
+        this.announceScore();
 
         // Check if set is won
-        if (this.gameState.homeScore >= 11 || this.gameState.awayScore >= 11) {
-            this.checkSetWin();
-        }
+        this.checkSetWin();
 
         this.updateGameUI();
         this.animateScoreUpdate(team);
@@ -539,6 +621,8 @@ class PingPongScoreTracker {
         this.gameState.currentSet++;
         this.gameState.homeScore = 0;
         this.gameState.awayScore = 0;
+        this.gameState.isDeuce = false;
+        this.gameState.deuceAdvantage = null;
         
         // Reset serve state for new set
         this.resetServeState();
@@ -593,6 +677,8 @@ class PingPongScoreTracker {
     resetCurrentSet() {
         this.gameState.homeScore = 0;
         this.gameState.awayScore = 0;
+        this.gameState.isDeuce = false;
+        this.gameState.deuceAdvantage = null;
         
         // Reset serve state for current set
         this.resetServeState();
