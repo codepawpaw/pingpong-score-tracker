@@ -269,6 +269,32 @@ class AudioManager {
         }
     }
 
+    async announceServe(teamName, isNewSet = false) {
+        if (!this.voiceEnabled || !this.speechSynthesis) return;
+
+        try {
+            // Small delay to avoid overlapping with score announcements
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            this.speechSynthesis.cancel();
+            
+            const announcement = isNewSet ? 
+                `${teamName} to serve first` : 
+                `${teamName} serving`;
+            
+            const utterance = new SpeechSynthesisUtterance(announcement);
+            if (this.voiceSettings.voice) utterance.voice = this.voiceSettings.voice;
+            utterance.rate = this.voiceSettings.rate;
+            utterance.pitch = this.voiceSettings.pitch;
+            utterance.volume = this.voiceSettings.volume;
+
+            this.speechSynthesis.speak(utterance);
+            console.log('Announcing serve:', announcement);
+        } catch (error) {
+            console.warn('Failed to announce serve:', error);
+        }
+    }
+
     // Enable audio on user interaction (required by browser policies)
     async enableAudio() {
         if (this.audioContext && this.audioContext.state === 'suspended') {

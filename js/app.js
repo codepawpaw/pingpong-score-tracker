@@ -302,6 +302,14 @@ class PingPongScoreTracker {
         this.gameState.serveCount = 0;
         this.gameState.totalPoints = 0;
         this.updateServeUI();
+        
+        // Announce who serves first
+        const servingTeam = this.gameState.currentServer === 'home' ? 
+            this.gameState.homeTeam : this.gameState.awayTeam;
+        
+        if (window.audioManager) {
+            window.audioManager.announceServe(servingTeam, true);
+        }
     }
 
     updateServeRotation() {
@@ -310,11 +318,25 @@ class PingPongScoreTracker {
 
         // Determine serves per player based on deuce phase
         const servesPerPlayer = this.gameState.isDeuce ? 1 : 2;
+        
+        // Store previous server to detect changes
+        const previousServer = this.gameState.currentServer;
 
         // Check if it's time to switch server
         if (this.gameState.serveCount >= servesPerPlayer) {
             this.gameState.currentServer = this.gameState.currentServer === 'home' ? 'away' : 'home';
             this.gameState.serveCount = 0;
+            
+            // Announce serve change
+            const newServingTeam = this.gameState.currentServer === 'home' ? 
+                this.gameState.homeTeam : this.gameState.awayTeam;
+            
+            if (window.audioManager) {
+                // Add a delay so it doesn't interfere with score announcements
+                setTimeout(() => {
+                    window.audioManager.announceServe(newServingTeam, false);
+                }, 1500);
+            }
         }
 
         this.updateServeUI();
@@ -346,6 +368,17 @@ class PingPongScoreTracker {
         this.gameState.serveCount = 0;
         this.gameState.totalPoints = 0;
         this.updateServeUI();
+        
+        // Announce who serves for the new set
+        const servingTeam = this.gameState.currentServer === 'home' ? 
+            this.gameState.homeTeam : this.gameState.awayTeam;
+        
+        if (window.audioManager) {
+            // Add delay to avoid overlapping with set completion announcements
+            setTimeout(() => {
+                window.audioManager.announceServe(servingTeam, true);
+            }, 2000);
+        }
     }
 
     // History management methods for undo functionality
